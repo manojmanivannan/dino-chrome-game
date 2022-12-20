@@ -19,9 +19,11 @@ class Snake:
         self.snake_right = False
         self.food_obtained = False
         self.snake_body = []
+        self.direction = ''
 
         self.snake_body.append(pygame.Rect(self.X_POS, self.Y_POS,img.get_width(), img.get_height()))
         self.head = self.snake_body[0]
+        self.new_head = None
 
     def draw(self, SCREEN):
         for block in self.snake_body:
@@ -30,13 +32,33 @@ class Snake:
 
     def update(self):
         if self.snake_up:
+            self.direction='UP'
             self.move_up()
         if self.snake_down:
+            self.direction='DOWN'
             self.move_down()
         if self.snake_right:
+            self.direction='RIGHT'
             self.move_right()
         if self.snake_left:
+            self.direction='LEFT'
             self.move_left()
+
+    def get_new_head(self,DIRECTION):
+        X_n = self.snake_body[0].x
+        Y_n = self.snake_body[0].y
+
+        match DIRECTION:
+            case 'UP':
+                Y_n += self.image.get_height()
+            case 'DOWN':
+                Y_n -= self.image.get_height()
+            case 'RIGHT':
+                X_n -= self.image.get_height()
+            case 'LEFT':
+                X_n += self.image.get_height()
+                
+        return pygame.Rect(X_n ,Y_n,self.image.get_width(), self.image.get_height())
 
     def is_collision(self, KIND):
         self.head = self.snake_body[0]
@@ -50,34 +72,48 @@ class Snake:
                 return True if self.head.x >= WIDTH - self.image.get_width() else False # right screen
             case 'LEFT':
                 return True if self.head.x < self.image.get_width() else False # left screen
+            case 'BODY':
+                return any([True if self.new_head == body else False for body in self.snake_body])
 
     def move_up(self):
+        self.new_head = pygame.Rect(self.snake_body[0].x ,self.snake_body[0].y - self.image.get_height(),self.image.get_width(), self.image.get_height())
+        if self.is_collision(KIND='BODY'):
+            self.new_head = self.get_new_head(DIRECTION=self.direction)
         if not self.is_collision(KIND='TOP'): 
-            self.snake_body.insert(0,pygame.Rect(self.snake_body[0].x ,self.snake_body[0].y - self.image.get_height(),self.image.get_width(), self.image.get_height()))
+            self.snake_body.insert(0,self.new_head)
             if not self.food_obtained:
                 self.snake_body.pop()
-            # self.head.y -= self.image.get_height()
+
 
     def move_down(self,):
+        self.new_head = pygame.Rect(self.snake_body[0].x ,self.snake_body[0].y + self.image.get_height(),self.image.get_width(), self.image.get_height())
+        if self.is_collision(KIND='BODY'):
+            self.new_head = self.get_new_head(DIRECTION=self.direction)
         if not self.is_collision(KIND='BOTTOM'): 
-            self.snake_body.insert(0,pygame.Rect(self.snake_body[0].x ,self.snake_body[0].y + self.image.get_height(),self.image.get_width(), self.image.get_height()))
+            self.snake_body.insert(0,self.new_head)
             if not self.food_obtained:
                 self.snake_body.pop()
-            # self.head.y += self.image.get_height()
+
 
     def move_right(self):
+        self.new_head = pygame.Rect(self.snake_body[0].x + self.image.get_width() ,self.snake_body[0].y,self.image.get_width(), self.image.get_height())
+        if self.is_collision(KIND='BODY'):
+            self.new_head = self.get_new_head(DIRECTION=self.direction)
         if not self.is_collision(KIND='RIGHT'): 
-            self.snake_body.insert(0,pygame.Rect(self.snake_body[0].x + self.image.get_width() ,self.snake_body[0].y ,self.image.get_width(), self.image.get_height()))
+            self.snake_body.insert(0,self.new_head)
             if not self.food_obtained:
                 self.snake_body.pop()
-            # self.head.x += self.image.get_width()
+
 
     def move_left(self):
+        self.new_head = pygame.Rect(self.snake_body[0].x - self.image.get_width() ,self.snake_body[0].y,self.image.get_width(), self.image.get_height())
+        if self.is_collision(KIND='BODY'):
+            self.new_head = self.get_new_head(DIRECTION=self.direction)
         if not self.is_collision(KIND='LEFT'): 
-            self.snake_body.insert(0,pygame.Rect(self.snake_body[0].x - self.image.get_width() ,self.snake_body[0].y ,self.image.get_width(), self.image.get_height()))
+            self.snake_body.insert(0,self.new_head)
             if not self.food_obtained:
                 self.snake_body.pop()
-            # self.head.x -= self.image.get_width()
+
 
 
 
