@@ -5,11 +5,18 @@ from snakes import Snake, Food, SCREEN_SIZE
 pygame.init()
 
 SCREEN = pygame.display.set_mode(SCREEN_SIZE)
+FONT = pygame.font.Font('freesansbold.ttf', 20)
 
 def main():
 
     snake = Snake()
     food = Food()
+
+    def score():
+        
+        text_1 = FONT.render(f'Length:  {str(snake.__len__())}', True, (0, 0, 0))
+        SCREEN.blit(text_1, (5, 450))
+        
 
     RUN = True
     while RUN:
@@ -18,8 +25,6 @@ def main():
 
         # Set background color
         SCREEN.fill((255, 255, 255))
-
-
 
         # Get directions from arrow keys
         # user_input = pygame.key.get_pressed()
@@ -54,20 +59,19 @@ def main():
                     snake.snake_down = False
                     snake.snake_left = False
                     snake.snake_right = False
+        
         snake.update()
         food.draw(SCREEN)
-        
-        
 
         if snake.head == food.pos:
             snake.food_obtained=True
-            print('Yummy')
             food.respawn()
         else:
             snake.food_obtained=False
 
         snake.draw(SCREEN)
 
+        score()
         clock.tick(4)
         pygame.display.update()
     

@@ -25,6 +25,9 @@ class Snake:
         self.head = self.snake_body[0]
         self.new_head = None
 
+    def __len__(self):
+        return len(self.snake_body)
+        
     def draw(self, SCREEN):
         for block in self.snake_body:
             SCREEN.blit(self.image, (block.x, block.y))
