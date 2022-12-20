@@ -20,6 +20,7 @@ class Snake:
         self.food_obtained = False
         self.snake_body = []
         self.direction = ''
+        self.is_dead = False
 
         self.snake_body.append(pygame.Rect(self.X_POS, self.Y_POS,img.get_width(), img.get_height()))
         self.head = self.snake_body[0]
@@ -77,45 +78,60 @@ class Snake:
                 return True if self.head.x < self.image.get_width() else False # left screen
             case 'BODY':
                 return any([True if self.new_head == body else False for body in self.snake_body])
+            case 'REVERSE':
+                if self.new_head.x == self.head.x and self.new_head.y == self.head.y:
+                    print('New head',self.new_head,'| current head',self.head)
+                    return True
 
     def move_up(self):
         self.new_head = pygame.Rect(self.snake_body[0].x ,self.snake_body[0].y - self.image.get_height(),self.image.get_width(), self.image.get_height())
+        # check if we are reversing on the snake itself
+        if self.new_head.y == self.head.y: self.new_head = self.get_new_head(DIRECTION=self.direction)
         if self.is_collision(KIND='BODY'):
-            self.new_head = self.get_new_head(DIRECTION=self.direction)
+            self.is_dead = True
         if not self.is_collision(KIND='TOP'): 
             self.snake_body.insert(0,self.new_head)
             if not self.food_obtained:
                 self.snake_body.pop()
-
+        else:
+            self.is_dead = True
 
     def move_down(self,):
         self.new_head = pygame.Rect(self.snake_body[0].x ,self.snake_body[0].y + self.image.get_height(),self.image.get_width(), self.image.get_height())
+        # check if we are reversing on the snake itself
+        if self.new_head.y == self.head.y: self.new_head = self.get_new_head(DIRECTION=self.direction)
         if self.is_collision(KIND='BODY'):
-            self.new_head = self.get_new_head(DIRECTION=self.direction)
+            self.is_dead = True
         if not self.is_collision(KIND='BOTTOM'): 
             self.snake_body.insert(0,self.new_head)
             if not self.food_obtained:
                 self.snake_body.pop()
-
+        else:
+            self.is_dead = True
 
     def move_right(self):
         self.new_head = pygame.Rect(self.snake_body[0].x + self.image.get_width() ,self.snake_body[0].y,self.image.get_width(), self.image.get_height())
+        if self.new_head.x == self.head.x: self.new_head = self.get_new_head(DIRECTION=self.direction)
         if self.is_collision(KIND='BODY'):
-            self.new_head = self.get_new_head(DIRECTION=self.direction)
+            self.is_dead = True
         if not self.is_collision(KIND='RIGHT'): 
             self.snake_body.insert(0,self.new_head)
             if not self.food_obtained:
                 self.snake_body.pop()
-
+        else:
+            self.is_dead = True
 
     def move_left(self):
         self.new_head = pygame.Rect(self.snake_body[0].x - self.image.get_width() ,self.snake_body[0].y,self.image.get_width(), self.image.get_height())
+        if self.new_head.x == self.head.x: self.new_head = self.get_new_head(DIRECTION=self.direction)
         if self.is_collision(KIND='BODY'):
-            self.new_head = self.get_new_head(DIRECTION=self.direction)
+            self.is_dead = True
         if not self.is_collision(KIND='LEFT'): 
             self.snake_body.insert(0,self.new_head)
             if not self.food_obtained:
                 self.snake_body.pop()
+        else:
+            self.is_dead = True
 
 
 

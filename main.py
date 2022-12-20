@@ -63,6 +63,9 @@ def main():
         snake.update()
         food.draw(SCREEN)
 
+        if snake.is_dead:
+            RUN = False
+
         if snake.head == food.pos:
             snake.food_obtained=True
             food.respawn()
