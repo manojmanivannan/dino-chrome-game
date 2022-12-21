@@ -1,17 +1,17 @@
 import pygame, os, random
+from statistics import mean
 
-SCREEN_SIZE = WIDTH, HEIGHT = 500, 500
+SCREEN_SIZE = WIDTH, HEIGHT = 600, 600
 
 SnakeHEAD = pygame.image.load(os.path.join("assets/Snake", "SnakeBlock.png"))
 FoodBLOCK = pygame.image.load(os.path.join("assets/obstacle", "FoodBlock.png"))
 
+
 class Snake:
 
-    X_POS = 25 * round(random.randrange(0, WIDTH - 25) / 25)
-    Y_POS = 25 * round(random.randrange(0, HEIGHT - 25) / 25)
-    JUMP_VEL = 8.5
+    # X_POS, Y_POS = random_x_y_coord(WIDTH, HEIGHT)
 
-    def __init__(self,img=SnakeHEAD) -> None:
+    def __init__(self,img=SnakeHEAD,POS=(300,475),id=0) -> None:
         self.image = img
         self.snake_up = False   # go up be default
         self.snake_down = False
@@ -21,7 +21,11 @@ class Snake:
         self.snake_body = []
         self.direction = ''
         self.is_dead = False
-
+        self.X_POS = POS[0]
+        self.Y_POS = POS[1]
+        self.food_history =[]
+        self.id=id
+        # print('Initialing snake',self.id, 'at',self.X_POS,self.Y_POS)
         self.snake_body.append(pygame.Rect(self.X_POS, self.Y_POS,img.get_width(), img.get_height()))
         self.head = self.snake_body[0]
         self.new_head = None
@@ -47,6 +51,9 @@ class Snake:
         if self.snake_left:
             self.direction='LEFT'
             self.move_left()
+        if self.food_history.__len__() > 4*round((WIDTH/25)):
+            if mean(self.food_history[-3*round((WIDTH/25)):]) == 0:
+                self.is_dead = True 
 
     def get_new_head(self,DIRECTION):
         X_n = self.snake_body[0].x
@@ -80,7 +87,7 @@ class Snake:
                 return any([True if self.new_head == body else False for body in self.snake_body])
             case 'REVERSE':
                 if self.new_head.x == self.head.x and self.new_head.y == self.head.y:
-                    print('New head',self.new_head,'| current head',self.head)
+                    # print('New head',self.new_head,'| current head',self.head)
                     return True
 
     def move_up(self):
@@ -93,6 +100,9 @@ class Snake:
             self.snake_body.insert(0,self.new_head)
             if not self.food_obtained:
                 self.snake_body.pop()
+                self.food_history.append(0)
+            else:
+                self.food_history.append(1)
         else:
             self.is_dead = True
 
@@ -106,6 +116,9 @@ class Snake:
             self.snake_body.insert(0,self.new_head)
             if not self.food_obtained:
                 self.snake_body.pop()
+                self.food_history.append(0)
+            else:
+                self.food_history.append(1)
         else:
             self.is_dead = True
 
@@ -118,6 +131,9 @@ class Snake:
             self.snake_body.insert(0,self.new_head)
             if not self.food_obtained:
                 self.snake_body.pop()
+                self.food_history.append(0)
+            else:
+                self.food_history.append(1)
         else:
             self.is_dead = True
 
@@ -130,6 +146,9 @@ class Snake:
             self.snake_body.insert(0,self.new_head)
             if not self.food_obtained:
                 self.snake_body.pop()
+                self.food_history.append(0)
+            else:
+                self.food_history.append(1)
         else:
             self.is_dead = True
 
@@ -138,15 +157,12 @@ class Snake:
 
 
 
-
-
-
 class Food:
-    X_POS = 25 * round(random.randrange(0, WIDTH - 25) / 25)
-    Y_POS = 25 * round(random.randrange(0, HEIGHT - 25) / 25)
 
-    def __init__(self,img=FoodBLOCK):
+    def __init__(self,img=FoodBLOCK,POS=(300,475)):
         self.image = img
+        self.X_POS = POS[0]
+        self.Y_POS = POS[1]
         self.pos = pygame.Rect(self.X_POS, self.Y_POS,img.get_width(), img.get_height())
 
         self.color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
@@ -159,3 +175,4 @@ class Food:
         self.X_POS = 25 * round(random.randrange(0, WIDTH - 25) / 25)
         self.Y_POS = 25 * round(random.randrange(0, HEIGHT - 25) / 25)
         self.pos = pygame.Rect(self.X_POS, self.Y_POS,self.image.get_width(), self.image.get_height())
+
