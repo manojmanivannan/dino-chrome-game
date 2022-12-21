@@ -2,6 +2,7 @@ import sys, pygame, os
 from snakes import Snake, Food, SCREEN_SIZE
 import random
 import neat, math
+import pickle
 
 pygame.init()
 
@@ -70,8 +71,11 @@ def eval_genomes(genomes, config):
         # Set background color
         SCREEN.fill((255, 255, 255))
 
-        pygame.event.get() # calling event get to avoid event queue to overload the pygame
-        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
         # break when all snakes die
         if len(snakes) == 0: RUN = False
 
@@ -85,7 +89,7 @@ def eval_genomes(genomes, config):
         # check if any of snakes is dead, if so , remove it from our list of snakes
         for i, snake in enumerate(snakes):
             if snake.is_dead: 
-                ge[i].fitness -= 1
+                ge[i].fitness -= 0.1
                 remove_snake(i)
 
         for (i, snake),food in zip(enumerate(snakes),foods):
@@ -125,27 +129,32 @@ def eval_genomes(genomes, config):
                 snake.snake_left = False
                 snake.snake_right = True
 
-      
-
-
-        
-
         score()
         clock.tick(game_speed)
         pygame.display.update()
-    
+        
 
 def run(config_path):
-    global pop
+    global pop, genomes
     config = neat.config.Config(
         neat.DefaultGenome,
         neat.DefaultReproduction,
         neat.DefaultSpeciesSet,
         neat.DefaultStagnation,
-        config_path
-    )
+        config_path)
+
     pop = neat.Population(config)
-    pop.run(eval_genomes)
+    
+    # Unpickle saved winner
+    with open('best_genome.pkl', "rb") as f:
+        genome = pickle.load(f)
+    genomes = [(1,(genome))]
+
+    winner = pop.run(eval_genomes,100)
+
+    # Pickle the current winner
+    with open('best_genome.pkl','wb') as f:
+        pickle.dump(winner, f)
 
 if __name__ == '__main__':
     local_dir = os.path.dirname(__file__)
