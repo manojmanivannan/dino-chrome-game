@@ -1,8 +1,7 @@
 import sys, pygame, os
 from snakes import Snake, Food, SCREEN_SIZE
 import random
-import neat, math
-import pickle
+import neat, math, re
 
 pygame.init()
 
@@ -19,11 +18,20 @@ def remove_snake(index):
     ge.pop(index)
     nets.pop(index)
 
-
 def distance(pos_a,pos_b):
     dx = pos_a[0]-pos_b[0]
     dy = pos_a[1]-pos_b[1]
     return math.sqrt(dx**2+dy**2)
+
+def get_max_checkpoint():
+    local_dir = os.path.dirname(__file__)
+    try:
+        last_check_point = max([int(f.split('point-')[1]) for f in os.listdir(local_dir) if re.match(r'neat-checkpoint+.*', f)])
+    except ValueError:
+        return None
+    print(f'Found neat-checkout-{last_check_point}')
+    return 'neat-checkpoint-'+str(last_check_point)
+
 
 def eval_genomes(genomes, config):
 
@@ -47,7 +55,6 @@ def eval_genomes(genomes, config):
         foods.append(Food(POS=random_x_y_coord(WIDTH,HEIGHT)))
 
 
-
     x_pos_bg = 0
     y_pos_bg = 0
     game_speed = 30
@@ -56,14 +63,10 @@ def eval_genomes(genomes, config):
     def score():
 
         # global snakes
-        text_1 = FONT.render(f'# Foods: {str(len(foods))}', True, (200, 0, 0))
         text_2 = FONT.render(f'# Snakes:  {str(len(snakes))}', True, (200, 0, 0))
         text_3 = FONT.render(f'Generation:  {pop.generation+1}', True, (200, 0, 0))
-        SCREEN.blit(text_1, (5, HEIGHT-15))
-        SCREEN.blit(text_2, (5, HEIGHT-30))
-        SCREEN.blit(text_3, (5, HEIGHT-45))
-
-
+        SCREEN.blit(text_2, (5, HEIGHT-15))
+        SCREEN.blit(text_3, (5, HEIGHT-30))
 
     RUN = True
     while RUN:
@@ -89,21 +92,25 @@ def eval_genomes(genomes, config):
         # check if any of snakes is dead, if so , remove it from our list of snakes
         for i, snake in enumerate(snakes):
             if snake.is_dead: 
-                ge[i].fitness -= 0.1
+                ge[i].fitness -= 1.0
                 remove_snake(i)
 
         for (i, snake),food in zip(enumerate(snakes),foods):
             if snake.head == food.pos:
                 snake.food_obtained=True
                 snake.food_history.append(1)
-                ge[i].fitness+=0.1
+                ge[i].fitness+=float(snake.__len__())
                 food.respawn()
             else:
                 snake.food_obtained=False
                 snake.food_history.append(0)
 
         for (i,snake),food in zip(enumerate(snakes),foods):
-            output = nets[i].activate((snake.head.x-food.pos.x, snake.head.y-food.pos.y,distance(snake.head,food.pos)))
+            output = nets[i].activate((
+                                        snake.head.x-food.pos.x,
+                                        snake.head.y-food.pos.y,
+                                        distance(snake.head,food.pos)
+                                        ))
 
             if output[0] > 0.5 and snake.direction != 'UP':
                 snake.snake_up = True
@@ -143,18 +150,22 @@ def run(config_path):
         neat.DefaultStagnation,
         config_path)
 
-    pop = neat.Population(config)
+    if get_max_checkpoint() != None:
+        pop = neat.Checkpointer.restore_checkpoint(get_max_checkpoint())
+        print('Checkout point found, resuming')
+    else:
+        print('No checkout, Creating new population')
+        pop = neat.Population(config)
     
-    # Unpickle saved winner
-    with open('best_genome.pkl', "rb") as f:
-        genome = pickle.load(f)
-    genomes = [(1,(genome))]
 
-    winner = pop.run(eval_genomes,100)
+    # Add stoud reported to show progress in the terminal
+    pop.add_reporter(neat.StdOutReporter(True))
+    stats = neat.StatisticsReporter()
+    pop.add_reporter(stats)
+    pop.add_reporter(neat.Checkpointer(20))
 
-    # Pickle the current winner
-    with open('best_genome.pkl','wb') as f:
-        pickle.dump(winner, f)
+    pop.run(eval_genomes,200)
+    
 
 if __name__ == '__main__':
     local_dir = os.path.dirname(__file__)
