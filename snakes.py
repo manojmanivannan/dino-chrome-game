@@ -1,35 +1,37 @@
 import pygame, os, random
 from statistics import mean
+from dataclasses import dataclass, field
+from pygame.surface import Surface
+from pygame.rect import Rect
 
 SCREEN_SIZE = WIDTH, HEIGHT = 600, 600
 
 SnakeHEAD = pygame.image.load(os.path.join("assets/Snake", "SnakeBlock.png"))
 FoodBLOCK = pygame.image.load(os.path.join("assets/obstacle", "FoodBlock.png"))
 
-
+@dataclass
 class Snake:
 
-    # X_POS, Y_POS = random_x_y_coord(WIDTH, HEIGHT)
+    image:          Surface     = field(init=False, default=SnakeHEAD)
+    pos:            tuple       = field(init=True, default=(300,475))
+    id:             int         = field(init=True, default=0)
+    snake_up:       bool        = field(init=False, default=False)
+    snake_down:     bool        = field(init=False, default=False)
+    snake_left:     bool        = field(init=False, default=False)
+    snake_right:    bool        = field(init=False, default=False)
+    food_obtained:  bool        = field(init=False, default=False)
+    snake_body:     list[Rect]  = field(init=False,default_factory=list)
+    food_history:   list[int]   = field(init=False,default_factory=list)
+    direction:      str         = field(init=False, default='')
+    is_dead:        bool        = field(init=False, default=False)
+    new_head:       Rect        = field(init=False, default=None)
 
-    def __init__(self,img=SnakeHEAD,POS=(300,475),id=0) -> None:
-        self.image = img
-        self.snake_up = False   # go up be default
-        self.snake_down = False
-        self.snake_left = False
-        self.snake_right = False
-        self.food_obtained = False
-        self.snake_body = []
-        self.direction = ''
-        self.is_dead = False
-        self.X_POS = POS[0]
-        self.Y_POS = POS[1]
-        self.food_history =[]
-        self.id=id
-        # print('Initialing snake',self.id, 'at',self.X_POS,self.Y_POS)
-        self.snake_body.append(pygame.Rect(self.X_POS, self.Y_POS,img.get_width(), img.get_height()))
+    def __post_init__(self) -> None:
+        self.X_POS = self.pos[0]
+        self.Y_POS = self.pos[1]
+        self.snake_body.append(pygame.Rect(self.X_POS, self.Y_POS,self.image.get_width(), self.image.get_height()))
         self.head = self.snake_body[0]
-        self.new_head = None
-
+        
     def __len__(self):
         return len(self.snake_body)
         

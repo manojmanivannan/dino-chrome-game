@@ -47,7 +47,7 @@ def eval_genomes(genomes, config):
     nets = []
 
     for genome_id, genome in genomes:
-        snakes.append(Snake(POS=random_x_y_coord(WIDTH,HEIGHT),id=genome_id))
+        snakes.append(Snake(pos=random_x_y_coord(WIDTH,HEIGHT),id=genome_id))
         ge.append(genome)
         net = neat.nn.FeedForwardNetwork.create(genome,config)
         nets.append(net)
